@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SYS_STATUS // OPERATIONAL GRID</title>
+  <style>
+    /* ── Base ─────────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cyan:    #00f5ff;
+      --magenta: #ff00c8;
+      --green:   #00ff41;
+      --yellow:  #f5e642;
+      --red:     #ff2d55;
+      --gray:    #556677;
+      --bg:      #050810;
+      --bg2:     #090d18;
+      --bg3:     #0d1220;
+      --border:  #1a2540;
+      --text:    #c8d8f0;
+      --dim:     #4a5a7a;
+    }
+
+    html { font-size: 28px; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.18) 2px,
+        rgba(0,0,0,0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Grid background */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    .site-header {
+      text-align: center;
+      padding: 32px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .site-header::after {
+      content: '';
+      display: block;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
+      margin-top: 24px;
+      animation: glowLine 3s ease-in-out infinite;
+    }
+
+    @keyframes glowLine {
+      0%, 100% { opacity: 0.6; }
+      50%       { opacity: 1; }
+    }
+
+    .header-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .header-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow:
+        0 0 10px var(--cyan),
+        0 0 30px rgba(0,245,255,0.4),
+        0 0 60px rgba(0,245,255,0.15);
+    }
+
+    .header-title span {
+      color: var(--magenta);
+      text-shadow:
+        0 0 10px var(--magenta),
+        0 0 30px rgba(255,0,200,0.4);
+    }
+
+    .header-sub {
+      font-size: 0.75rem;
+      color: var(--dim);
+      letter-spacing: 0.25em;
+      margin-top: 8px;
+    }
+
+    /* ── Banner ───────────────────────────────────────────── */
+    .banner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 640px) { .banner { grid-template-columns: 1fr; } }
+
+    .banner-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    a.banner-card:hover {
+      box-shadow: 0 0 24px rgba(0,245,255,0.12);
+    }
+
+    a.banner-card.warn:hover {
+      box-shadow: 0 0 24px rgba(255,45,85,0.2);
+    }
+
+    .banner-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+    }
+
+    .banner-card.ok::before   { background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .banner-card.warn::before { background: var(--red);   box-shadow: 0 0 12px var(--red); }
+
+    .banner-card.ok   { border-color: rgba(0,255,65,0.25); }
+    .banner-card.warn { border-color: rgba(255,45,85,0.4); animation: pulse-border 1.5s ease-in-out infinite; }
+
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(255,45,85,0.3); }
+      50%       { border-color: rgba(255,45,85,0.8); }
+    }
+
+    .banner-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .banner-info { flex: 1; min-width: 0; }
+
+    .banner-source {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .banner-msg {
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    .banner-card.ok   .banner-msg { color: var(--green); text-shadow: 0 0 8px rgba(0,255,65,0.5); }
+    .banner-card.warn .banner-msg { color: var(--red);   text-shadow: 0 0 8px rgba(255,45,85,0.5); }
+
+    .banner-badge {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      padding: 3px 9px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .badge-ok   { background: rgba(0,255,65,0.12);  color: var(--green); border: 1px solid rgba(0,255,65,0.4); }
+    .badge-warn { background: rgba(255,45,85,0.12); color: var(--red);   border: 1px solid rgba(255,45,85,0.4); }
+
+    /* ── Section heading ──────────────────────────────────── */
+    .section-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.35em;
+      color: var(--magenta);
+      text-transform: uppercase;
+      text-shadow: 0 0 8px rgba(255,0,200,0.5);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255,0,200,0.4), transparent);
+    }
+
+    /* ── Card grid ────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .card:hover {
+      border-color: rgba(0,245,255,0.3);
+      box-shadow: 0 0 20px rgba(0,245,255,0.05), inset 0 0 20px rgba(0,245,255,0.02);
+    }
+
+    .card-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--bg3);
+    }
+
+    .card-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+
+    .status-pill {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      border-radius: 2px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .pill-operational  { background: rgba(0,255,65,0.1);  color: var(--green);   border: 1px solid rgba(0,255,65,0.35); }
+    .pill-degraded     { background: rgba(245,230,66,0.1); color: var(--yellow);  border: 1px solid rgba(245,230,66,0.35); }
+    .pill-partial      { background: rgba(245,230,66,0.1); color: var(--yellow);  border: 1px solid rgba(245,230,66,0.35); }
+    .pill-major        { background: rgba(255,45,85,0.1);  color: var(--red);     border: 1px solid rgba(255,45,85,0.35); }
+    .pill-unknown      { background: rgba(85,102,119,0.2); color: var(--gray);    border: 1px solid rgba(85,102,119,0.4); }
+
+    .card-children { padding: 8px 0; }
+
+    .child-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 16px;
+      border-bottom: 1px solid rgba(26,37,64,0.5);
+      transition: background 0.15s;
+    }
+
+    .child-row:last-child { border-bottom: none; }
+    .child-row:hover { background: rgba(0,245,255,0.03); }
+
+    .child-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-right: 10px;
+    }
+
+    .dot-operational { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+    .dot-degraded    { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .dot-partial     { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .dot-major       { background: var(--red);    box-shadow: 0 0 6px var(--red); animation: blink 1s step-start infinite; }
+    .dot-unknown     { background: var(--gray); }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .child-name {
+      flex: 1;
+      font-size: 0.8rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+    }
+
+    .child-status {
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+    }
+
+    .status-operational { color: var(--green); }
+    .status-degraded    { color: var(--yellow); }
+    .status-partial     { color: var(--yellow); }
+    .status-major       { color: var(--red); }
+    .status-unknown     { color: var(--gray); }
+
+    /* ── Azure Incidents ──────────────────────────────────── */
+    .incident-card {
+      background: var(--bg2);
+      border: 1px solid rgba(255,45,85,0.35);
+      border-radius: 4px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      animation: pulse-border 2s ease-in-out infinite;
+    }
+
+    .incident-header {
+      background: rgba(255,45,85,0.08);
+      border-bottom: 1px solid rgba(255,45,85,0.25);
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .incident-tag {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      color: var(--red);
+      background: rgba(255,45,85,0.15);
+      border: 1px solid rgba(255,45,85,0.4);
+      padding: 3px 7px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .incident-title {
+      font-size: 0.85rem;
+      color: var(--red);
+      line-height: 1.4;
+    }
+
+    .incident-meta {
+      padding: 10px 16px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-item { font-size: 0.72rem; color: var(--dim); }
+    .meta-item span { color: var(--text); }
+
+    .incident-desc {
+      padding: 12px 16px;
+      font-size: 0.78rem;
+      color: var(--text);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      opacity: 0.85;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .incident-desc::-webkit-scrollbar { width: 4px; }
+    .incident-desc::-webkit-scrollbar-track { background: var(--bg); }
+    .incident-desc::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 2px; }
+
+    .incident-link {
+      display: inline-block;
+      padding: 10px 16px;
+      font-size: 0.72rem;
+      color: var(--cyan);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+
+    .incident-link:hover { text-shadow: 0 0 8px var(--cyan); }
+
+    .no-incidents {
+      text-align: center;
+      padding: 32px;
+      color: var(--green);
+      font-size: 0.9rem;
+      text-shadow: 0 0 8px rgba(0,255,65,0.4);
+      border: 1px solid rgba(0,255,65,0.2);
+      border-radius: 4px;
+      background: rgba(0,255,65,0.03);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Loader ───────────────────────────────────────────── */
+    .loader {
+      text-align: center;
+      padding: 40px;
+      color: var(--dim);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+    }
+
+    .loader-ring {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.68rem;
+      color: var(--dim);
+      letter-spacing: 0.15em;
+      border-top: 1px solid var(--border);
+    }
+
+    .refresh-btn {
+      background: none;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      padding: 6px 16px;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    .refresh-btn:hover {
+      background: rgba(0,245,255,0.1);
+      box-shadow: 0 0 14px rgba(0,245,255,0.25);
+    }
+
+    /* ── Glitch on title ──────────────────────────────────── */
+    .glitch {
+      position: relative;
+      display: inline-block;
+    }
+
+    .glitch::before, .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      clip-path: polygon(0 30%, 100% 30%, 100% 55%, 0 55%);
+    }
+
+    .glitch::before {
+      color: var(--magenta);
+      animation: glitch1 4s infinite linear;
+      transform: translateX(-2px);
+      opacity: 0.7;
+    }
+
+    .glitch::after {
+      color: var(--cyan);
+      animation: glitch2 4s infinite linear;
+      transform: translateX(2px);
+      opacity: 0.7;
+    }
+
+    @keyframes glitch1 {
+      0%,94%,100% { clip-path: polygon(0 0,0 0,0 0,0 0); transform: translateX(0); }
+      95% { clip-path: polygon(0 20%,100% 20%,100% 45%,0 45%); transform: translateX(-3px); }
+      97% { clip-path: polygon(0 60%,100% 60%,100% 80%,0 80%); transform: translateX(3px); }
+    }
+
+    @keyframes glitch2 {
+      0%,96%,100% { clip-path: polygon(0 0,0 0,0 0,0 0); transform: translateX(0); }
+      97% { clip-path: polygon(0 50%,100% 50%,100% 70%,0 70%); transform: translateX(3px); }
+      99% { clip-path: polygon(0 10%,100% 10%,100% 30%,0 30%); transform: translateX(-3px); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-eyebrow">// LIVE FEED · OPERATIONAL INTELLIGENCE //</div>
+    <h1 class="header-title">
+      <span class="glitch" data-text="SYS">SYS</span>_STATUS
+      <span>&nbsp;//&nbsp;</span>
+      <span class="glitch" data-text="GRID">GRID</span>
+    </h1>
+    <div class="header-sub">SAMANAGE &amp; MICROSOFT AZURE · STATUS MONITOR</div>
+  </header>
+
+  <!-- Top banner -->
+  <div class="banner" id="banner">
+    <div class="loader"><div class="loader-ring"></div><br>SCANNING SAMANAGE...</div>
+    <div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>
+  </div>
+
+  <!-- Samanage detail -->
+  <div id="samanage-section"></div>
+
+  <!-- Azure detail -->
+  <div id="azure-section"></div>
+
+  <footer>
+    <div id="last-updated">AWAITING DATA...</div>
+    <div id="countdown" style="margin-top:6px;font-size:0.6rem;letter-spacing:0.2em;color:var(--dim)">NEXT REFRESH IN <span id="countdown-val" style="color:var(--cyan)">60</span>s</div>
+    <br>
+    <button class="refresh-btn" onclick="loadAll()">⟳ &nbsp;REFRESH</button>
+  </footer>
+
+</div>
+
+<script>
+  // ── Helpers ─────────────────────────────────────────────
+  // Multiple CORS proxies — tried in order until one succeeds
+  const CORS_PROXIES = [
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://thingproxy.freeboard.io/fetch/${url}`,
+  ];
+  const SAMANAGE_URL = 'https://status.samanage.com/api/v2/summary.json';
+  const AZURE_URL    = 'https://rssfeed.azure.status.microsoft/en-us/status/feed/';
+
+  function pillClass(status = '') {
+    if (status.includes('operational'))         return 'pill-operational';
+    if (status.includes('degraded'))            return 'pill-degraded';
+    if (status.includes('partial'))             return 'pill-partial';
+    if (status.includes('major'))               return 'pill-major';
+    return 'pill-unknown';
+  }
+
+  function dotClass(status = '') {
+    if (status.includes('operational')) return 'dot-operational';
+    if (status.includes('degraded'))    return 'dot-degraded';
+    if (status.includes('partial'))     return 'dot-partial';
+    if (status.includes('major'))       return 'dot-major';
+    return 'dot-unknown';
+  }
+
+  function statusTextClass(status = '') {
+    if (status.includes('operational')) return 'status-operational';
+    if (status.includes('degraded'))    return 'status-degraded';
+    if (status.includes('partial'))     return 'status-partial';
+    if (status.includes('major'))       return 'status-major';
+    return 'status-unknown';
+  }
+
+  function fmtStatus(s = '') {
+    return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function stripHtml(html = '') {
+    return html
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+      .replace(/&nbsp;/g, ' ').replace(/&#\d+;/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  // ── Samanage ─────────────────────────────────────────────
+  async function fetchSamanage() {
+    const r = await fetch(SAMANAGE_URL);
+    return r.json();
+  }
+
+  function renderSamanage(data) {
+    const indicator = data.status.indicator;
+    const desc      = data.status.description;
+    const isOk      = indicator === 'none';
+
+    // Banner card
+    const bannerHTML = `
+      <a class="banner-card ${isOk ? 'ok' : 'warn'}" href="https://status.samanage.com/" target="_blank" rel="noopener">
+        <div class="banner-icon">${isOk ? '✦' : '⚠'}</div>
+        <div class="banner-info">
+          <div class="banner-source">Samanage · SolarWinds Service Desk</div>
+          <div class="banner-msg">${isOk ? 'All Systems Operational' : desc}</div>
+        </div>
+        <span class="banner-badge ${isOk ? 'badge-ok' : 'badge-warn'}">${isOk ? 'OK' : 'ISSUE'}</span>
+      </a>`;
+
+    const components = data.components;
+    const groups   = components.filter(c => c.group === true);
+    const children = components.filter(c => c.group === false && c.group_id);
+    const standalone = components.filter(c => c.group === false && !c.group_id);
+
+    const targetStandalone = ['Website & Blog'];
+    const targetGroups = [
+      'SolarWinds Service Desk [USA]',
+      'SolarWinds Service Desk [EMEA]',
+      'SolarWinds Service Desk [APAC]',
+      'Mobile Application'
+    ];
+
+    function renderCard(name, status, kids = []) {
+      const kidsHTML = kids.map(k => `
+        <div class="child-row">
+          <span class="child-name">
+            <span class="child-dot ${dotClass(k.status)}"></span>
+            ${k.name}
+          </span>
+          <span class="child-status ${statusTextClass(k.status)}">${fmtStatus(k.status)}</span>
+        </div>`).join('');
+
+      return `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-name">${name}</div>
+            <span class="status-pill ${pillClass(status)}">${fmtStatus(status)}</span>
+          </div>
+          ${kids.length ? `<div class="card-children">${kidsHTML}</div>` : ''}
+        </div>`;
+    }
+
+    let cards = '';
+
+    for (const name of targetStandalone) {
+      const c = standalone.find(x => x.name === name);
+      if (c) cards += renderCard(c.name, c.status);
+    }
+
+    for (const name of targetGroups) {
+      const g = groups.find(x => x.name === name);
+      if (g) {
+        const kids = children.filter(x => x.group_id === g.id);
+        cards += renderCard(g.name, g.status, kids);
+      }
+    }
+
+    const section = `
+      <div class="section-label">// SAMANAGE · SOLARWINDS SERVICE DESK</div>
+      <div class="card-grid">${cards}</div>`;
+
+    return { bannerHTML, section };
+  }
+
+  // ── Azure RSS ─────────────────────────────────────────────
+  async function fetchAzure() {
+    let lastErr;
+    for (const proxy of CORS_PROXIES) {
+      try {
+        const r = await fetch(proxy(AZURE_URL), { signal: AbortSignal.timeout(8000) });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const txt = await r.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(txt, 'text/xml');
+        // DOMParser sets the root to <parsererror> on failure
+        if (xml.querySelector('parsererror')) throw new Error('XML parse error');
+        // Confirm we actually got RSS items
+        if (xml.getElementsByTagName('item').length === 0 &&
+            xml.getElementsByTagName('channel').length === 0) throw new Error('Empty feed');
+        return xml;
+      } catch (e) {
+        lastErr = e;
+        console.warn(`Azure proxy failed (${proxy(AZURE_URL).split('?')[0]}):`, e.message);
+      }
+    }
+    throw lastErr;
+  }
+
+  function renderAzure(xml) {
+    // Use getElementsByTagName — querySelectorAll fails on XML with namespaces
+    const items = Array.from(xml.getElementsByTagName('item'));
+    const active = items.filter(i => {
+      const titleEl = i.getElementsByTagName('title')[0];
+      const t = titleEl ? (titleEl.textContent || titleEl.innerHTML || '') : '';
+      return /^active/i.test(t.trim());
+    });
+    const isNormal = active.length === 0;
+
+    // Banner card
+    const bannerHTML = `
+      <a class="banner-card ${isNormal ? 'ok' : 'warn'}" href="https://azure.status.microsoft/en-us/status/" target="_blank" rel="noopener">
+        <div class="banner-icon">${isNormal ? '✦' : '⚠'}</div>
+        <div class="banner-info">
+          <div class="banner-source">Microsoft Azure</div>
+          <div class="banner-msg">${isNormal ? 'All Systems Normal' : `${active.length} Active Incident${active.length > 1 ? 's' : ''}`}</div>
+        </div>
+        <span class="banner-badge ${isNormal ? 'badge-ok' : 'badge-warn'}">${isNormal ? 'OK' : 'ALERT'}</span>
+      </a>`;
+
+    let incidentsHTML = '';
+    if (isNormal) {
+      incidentsHTML = `<div class="no-incidents">✦ &nbsp;NO ACTIVE INCIDENTS DETECTED &nbsp;✦</div>`;
+    } else {
+      incidentsHTML = active.map(item => {
+        const title   = item.getElementsByTagName('title')[0]?.textContent || '';
+        const link    = item.getElementsByTagName('link')[0]?.textContent?.trim() || '#';
+        const pubDate = item.getElementsByTagName('pubDate')[0]?.textContent || '';
+        const desc    = stripHtml(item.getElementsByTagName('description')[0]?.textContent || '');
+        const date    = pubDate ? new Date(pubDate).toLocaleString() : 'Unknown';
+
+        return `
+          <div class="incident-card">
+            <div class="incident-header">
+              <span class="incident-tag">ACTIVE</span>
+              <div class="incident-title">${title.replace(/^Active\s*[–-]\s*/i, '')}</div>
+            </div>
+            <div class="incident-meta">
+              <div class="meta-item">Published: <span>${date}</span></div>
+            </div>
+            <div class="incident-desc">${desc}</div>
+            <a class="incident-link" href="${link}" target="_blank" rel="noopener">
+              ↗ VIEW INCIDENT REPORT
+            </a>
+          </div>`;
+      }).join('');
+    }
+
+    const section = `
+      <div class="section-label">// MICROSOFT AZURE · INCIDENT FEED</div>
+      ${incidentsHTML}
+      <div style="margin-bottom:36px"></div>`;
+
+    return { bannerHTML, section };
+  }
+
+  // ── Orchestrate ───────────────────────────────────────────
+  async function loadAll() {
+    // Reset
+    document.getElementById('banner').innerHTML = `
+      <div class="loader"><div class="loader-ring"></div><br>SCANNING SAMANAGE...</div>
+      <div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>`;
+    document.getElementById('samanage-section').innerHTML = '';
+    document.getElementById('azure-section').innerHTML = '';
+    document.getElementById('last-updated').textContent = 'FETCHING DATA...';
+
+    const [samResult, azureResult] = await Promise.allSettled([
+      fetchSamanage(),
+      fetchAzure()
+    ]);
+
+    const bannerEl  = document.getElementById('banner');
+    const samEl     = document.getElementById('samanage-section');
+    const azureEl   = document.getElementById('azure-section');
+    const banners   = [];
+
+    if (samResult.status === 'fulfilled') {
+      const { bannerHTML, section } = renderSamanage(samResult.value);
+      banners.push(bannerHTML);
+      samEl.innerHTML = section;
+    } else {
+      banners.push(`
+        <div class="banner-card warn">
+          <div class="banner-icon">⚠</div>
+          <div class="banner-info">
+            <div class="banner-source">Samanage · SolarWinds Service Desk</div>
+            <div class="banner-msg">Failed to load status</div>
+          </div>
+          <span class="banner-badge badge-warn">ERROR</span>
+        </div>`);
+      samEl.innerHTML = `<div class="loader" style="color:var(--red)">SAMANAGE DATA UNAVAILABLE</div>`;
+    }
+
+    if (azureResult.status === 'fulfilled') {
+      const { bannerHTML, section } = renderAzure(azureResult.value);
+      banners.push(bannerHTML);
+      azureEl.innerHTML = section;
+    } else {
+      banners.push(`
+        <div class="banner-card warn">
+          <div class="banner-icon">⚠</div>
+          <div class="banner-info">
+            <div class="banner-source">Microsoft Azure</div>
+            <div class="banner-msg">Failed to load feed</div>
+          </div>
+          <span class="banner-badge badge-warn">ERROR</span>
+        </div>`);
+      azureEl.innerHTML = `<div class="loader" style="color:var(--red)">AZURE FEED UNAVAILABLE</div>`;
+    }
+
+    bannerEl.innerHTML = banners.join('');
+    document.getElementById('last-updated').textContent =
+      'LAST SYNC: ' + new Date().toLocaleString().toUpperCase();
+  }
+
+  // ── Countdown timer ───────────────────────────────────────
+  const REFRESH_SEC = 60;
+  let countdown = REFRESH_SEC;
+  let countdownInterval;
+
+  function startCountdown() {
+    clearInterval(countdownInterval);
+    countdown = REFRESH_SEC;
+    document.getElementById('countdown-val').textContent = countdown;
+    countdownInterval = setInterval(() => {
+      countdown--;
+      const el = document.getElementById('countdown-val');
+      if (el) el.textContent = countdown < 0 ? 0 : countdown;
+    }, 1000);
+  }
+
+  // Wrap loadAll to reset countdown on every call (including manual refresh)
+  const _loadAll = loadAll;
+  loadAll = async function () {
+    await _loadAll();
+    startCountdown();
+  };
+
+  loadAll();
+  setInterval(() => loadAll(), REFRESH_SEC * 1000);
+</script>
+</body>
+</html>
