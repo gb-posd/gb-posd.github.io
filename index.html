@@ -484,6 +484,92 @@
       box-shadow: 0 0 14px rgba(0,245,255,0.25);
     }
 
+    /* ── CVE Feed ────────────────────────────────────────── */
+    .cve-list { margin-bottom: 36px; }
+
+    .cve-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+    }
+
+    .cve-item:hover { border-color: rgba(0,245,255,0.25); }
+
+    .cve-severity-bar {
+      width: 6px;
+      flex-shrink: 0;
+    }
+
+    .sev-critical { background: var(--red);    box-shadow: 0 0 10px var(--red); }
+    .sev-high     { background: #ff6b35;        box-shadow: 0 0 10px #ff6b35; }
+    .sev-medium   { background: var(--yellow);  box-shadow: 0 0 10px var(--yellow); }
+    .sev-low      { background: var(--green);   box-shadow: 0 0 8px var(--green); }
+    .sev-none     { background: var(--gray); }
+
+    .cve-body {
+      flex: 1;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cve-id {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 130px;
+    }
+
+    .cve-desc {
+      flex: 1;
+      font-size: 0.78rem;
+      color: var(--text);
+      line-height: 1.5;
+      min-width: 0;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .cve-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .cve-score {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .score-critical { color: var(--red);    border: 1px solid rgba(255,45,85,0.5);  background: rgba(255,45,85,0.1); }
+    .score-high     { color: #ff6b35;        border: 1px solid rgba(255,107,53,0.5); background: rgba(255,107,53,0.1); }
+    .score-medium   { color: var(--yellow);  border: 1px solid rgba(245,230,66,0.5); background: rgba(245,230,66,0.1); }
+    .score-low      { color: var(--green);   border: 1px solid rgba(0,255,65,0.4);   background: rgba(0,255,65,0.07); }
+    .score-none     { color: var(--gray);    border: 1px solid rgba(85,102,119,0.4); background: rgba(85,102,119,0.1); }
+
+    .cve-date {
+      font-size: 0.65rem;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+    }
+
     /* ── Glitch on title ──────────────────────────────────── */
     .glitch {
       position: relative;
@@ -549,6 +635,9 @@
 
   <!-- Azure detail -->
   <div id="azure-section"></div>
+
+  <!-- CVE Feed -->
+  <div id="cve-section"></div>
 
   <footer>
     <div id="last-updated">AWAITING DATA...</div>
@@ -767,6 +856,65 @@
     return { bannerHTML, section };
   }
 
+  // ── CVE Feed (NVD) ────────────────────────────────────────
+  const NVD_URL = 'https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=5';
+
+  async function fetchCVE() {
+    const r = await fetch(NVD_URL, { signal: AbortSignal.timeout(10000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+
+  function cveSeverityInfo(cvssScore) {
+    if (cvssScore === null) return { label: 'N/A', barClass: 'sev-none', scoreClass: 'score-none' };
+    if (cvssScore >= 9.0)   return { label: cvssScore.toFixed(1), barClass: 'sev-critical', scoreClass: 'score-critical' };
+    if (cvssScore >= 7.0)   return { label: cvssScore.toFixed(1), barClass: 'sev-high',     scoreClass: 'score-high' };
+    if (cvssScore >= 4.0)   return { label: cvssScore.toFixed(1), barClass: 'sev-medium',   scoreClass: 'score-medium' };
+    return                         { label: cvssScore.toFixed(1), barClass: 'sev-low',      scoreClass: 'score-low' };
+  }
+
+  function getCvssScore(cve) {
+    // Prefer CVSSv3.1, then v3.0, then v2
+    const m = cve.metrics;
+    if (!m) return null;
+    const v31 = m.cvssMetricV31?.[0]?.cvssData?.baseScore;
+    if (v31 != null) return v31;
+    const v30 = m.cvssMetricV30?.[0]?.cvssData?.baseScore;
+    if (v30 != null) return v30;
+    const v2 = m.cvssMetricV2?.[0]?.cvssData?.baseScore;
+    if (v2 != null) return v2;
+    return null;
+  }
+
+  function renderCVE(data) {
+    const vulns = data.vulnerabilities || [];
+
+    const itemsHTML = vulns.map(({ cve }) => {
+      const score = getCvssScore(cve);
+      const { label, barClass, scoreClass } = cveSeverityInfo(score);
+      const desc = cve.descriptions?.find(d => d.lang === 'en')?.value || 'No description available.';
+      const published = cve.published ? new Date(cve.published).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+      const nvdLink = `https://nvd.nist.gov/vuln/detail/${cve.id}`;
+
+      return `
+        <a class="cve-item" href="${nvdLink}" target="_blank" rel="noopener" style="text-decoration:none">
+          <div class="cve-severity-bar ${barClass}"></div>
+          <div class="cve-body">
+            <div class="cve-id">${cve.id}</div>
+            <div class="cve-desc">${desc}</div>
+            <div class="cve-meta">
+              <span class="cve-score ${scoreClass}">${label}</span>
+              <span class="cve-date">${published}</span>
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+
+    return `
+      <div class="section-label">// NVD · TOP 5 RECENT CVEs</div>
+      <div class="cve-list">${itemsHTML || '<div class="no-incidents">NO CVE DATA AVAILABLE</div>'}</div>`;
+  }
+
   // ── Orchestrate ───────────────────────────────────────────
   async function loadAll() {
     // Reset
@@ -775,16 +923,19 @@
       <div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>`;
     document.getElementById('samanage-section').innerHTML = '';
     document.getElementById('azure-section').innerHTML = '';
+    document.getElementById('cve-section').innerHTML = `<div class="loader"><div class="loader-ring"></div><br>SCANNING NVD CVE FEED...</div>`;
     document.getElementById('last-updated').textContent = 'FETCHING DATA...';
 
-    const [samResult, azureResult] = await Promise.allSettled([
+    const [samResult, azureResult, cveResult] = await Promise.allSettled([
       fetchSamanage(),
-      fetchAzure()
+      fetchAzure(),
+      fetchCVE()
     ]);
 
     const bannerEl  = document.getElementById('banner');
     const samEl     = document.getElementById('samanage-section');
     const azureEl   = document.getElementById('azure-section');
+    const cveEl     = document.getElementById('cve-section');
     const banners   = [];
 
     if (samResult.status === 'fulfilled') {
@@ -819,6 +970,12 @@
           <span class="banner-badge badge-warn">ERROR</span>
         </div>`);
       azureEl.innerHTML = `<div class="loader" style="color:var(--red)">AZURE FEED UNAVAILABLE</div>`;
+    }
+
+    if (cveResult.status === 'fulfilled') {
+      cveEl.innerHTML = renderCVE(cveResult.value);
+    } else {
+      cveEl.innerHTML = `<div class="loader" style="color:var(--red)">CVE FEED UNAVAILABLE</div>`;
     }
 
     bannerEl.innerHTML = banners.join('');
