@@ -328,10 +328,6 @@
 
     .toggle-caret.open { transform: rotate(90deg); }
 
-    @media (max-width: 900px) {
-      .toggle-caret { display: none; }
-    }
-
     /* ── Section heading ────────────────────────────────── */
     .section-label {
       font-family: 'VT323', monospace;
@@ -722,6 +718,8 @@
     }
 
     /* ── Desktop main layout ────────────────────────────── */
+    .col-terminal { display: none; }
+
     .main-grid {
       display: grid;
       gap: 20px;
@@ -739,12 +737,12 @@
       /* Right grid column left intentionally empty */
     }
 
-    /* Mobile: single column */
+    /* Mobile: single column — terminal first, then status cards */
     @media (max-width: 900px) {
       .main-grid { grid-template-columns: 1fr; }
-      .col-left-status { order: 1; }
+      .col-terminal    { display: flex; flex-direction: column; order: 1; }
+      .col-left-status { order: 2; }
       .col-cve         { display: none; }
-      .col-terminal    { display: flex; flex-direction: column; order: 2; }
     }
 
     .col { min-width: 0; }
@@ -769,18 +767,8 @@
       padding-top: 10px;
     }
 
-    /* On mobile, always show subsections */
-    @media (max-width: 900px) {
-      .status-subsection {
-        max-height: none !important;
-        overflow: visible !important;
-        padding-top: 10px !important;
-      }
-    }
 
     /* ── Terminal Panel ─────────────────────────────────── */
-    .col-terminal { display: none; }
-
     @media (min-width: 901px) {
       .col-terminal {
         display: flex;
