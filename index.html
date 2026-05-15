@@ -227,7 +227,8 @@
     }
 
     @media (max-width: 900px) {
-      .cve-ticker-bar { display: none; }
+      .cve-ticker-bar { display: flex; }
+      .cve-ticker-desc { max-width: 200px; }
     }
 
     /* ── Banner card (toggle block) ─────────────────────── */
@@ -742,7 +743,8 @@
     @media (max-width: 900px) {
       .main-grid { grid-template-columns: 1fr; }
       .col-left-status { order: 1; }
-      .col-cve         { order: 2; display: block; }
+      .col-cve         { display: none; }
+      .col-terminal    { display: flex; flex-direction: column; order: 2; }
     }
 
     .col { min-width: 0; }
@@ -773,6 +775,145 @@
         max-height: none !important;
         overflow: visible !important;
         padding-top: 10px !important;
+      }
+    }
+
+    /* ── Terminal Panel ─────────────────────────────────── */
+    .col-terminal { display: none; }
+
+    @media (min-width: 901px) {
+      .col-terminal {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    .terminal-panel {
+      background: #000;
+      border: 1px solid #1a2a1a;
+      border-top: 2px solid #00cc00;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 140px);
+      box-shadow: 0 0 24px rgba(0,204,0,0.08), inset 0 0 80px rgba(0,0,0,0.6);
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+    }
+
+    .terminal-titlebar {
+      background: #050f05;
+      border-bottom: 1px solid #0f1f0f;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .terminal-title-text {
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      color: #00cc00;
+      text-shadow: 0 0 8px rgba(0,204,0,0.6);
+      text-transform: uppercase;
+    }
+
+    .terminal-dots { display: flex; gap: 5px; align-items: center; }
+    .tdot { width: 9px; height: 9px; border-radius: 50%; }
+    .tdot-r { background: #ff5f56; }
+    .tdot-y { background: #ffbd2e; }
+    .tdot-g { background: #27c93f; }
+
+    .terminal-output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px;
+      color: #00cc00;
+      font-size: 0.76rem;
+      line-height: 1.65;
+      min-height: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .terminal-output::-webkit-scrollbar { width: 3px; }
+    .terminal-output::-webkit-scrollbar-track { background: #000; }
+    .terminal-output::-webkit-scrollbar-thumb { background: #0a3a0a; }
+
+    .terminal-line {
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .terminal-line.cmd    { color: #00cc00; }
+    .terminal-line.out    { color: #888; }
+    .terminal-line.err    { color: #ff4444; }
+    .terminal-line.info   { color: #2be4ea; }
+    .terminal-line.warn   { color: #fed33f; }
+    .terminal-line.ok     { color: #2bfea0; }
+    .terminal-line.header { color: #2be4ea; }
+    .terminal-line.empty  { height: 0.75em; display: block; }
+
+    .terminal-prompt-prefix { color: #00cc00; text-shadow: 0 0 5px rgba(0,204,0,0.5); }
+
+    .terminal-input-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 14px 10px;
+      border-top: 1px solid #0f2a0f;
+      gap: 6px;
+      flex-shrink: 0;
+      background: #000;
+      position: relative;
+      z-index: 1;
+    }
+
+    .terminal-prompt {
+      font-size: 0.76rem;
+      color: #00cc00;
+      text-shadow: 0 0 5px rgba(0,204,0,0.5);
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #00cc00;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.76rem;
+      caret-color: #00cc00;
+      text-shadow: 0 0 4px rgba(0,204,0,0.4);
+    }
+
+    /* Scanlines overlay */
+    .terminal-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.05) 2px,
+        rgba(0,0,0,0.05) 4px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @media (max-width: 900px) {
+      .terminal-panel {
+        position: static;
+        max-height: 320px;
       }
     }
 
@@ -858,11 +999,30 @@
       <div class="loader"><div class="loader-ring"></div><br>SCANNING NVD CVE FEED...</div>
     </div>
 
+    <!-- Terminal column — desktop right side -->
+    <div class="col col-terminal">
+      <div class="terminal-panel" id="terminal-panel">
+        <div class="terminal-titlebar">
+          <span class="terminal-title-text">// CMD TERMINAL</span>
+          <div class="terminal-dots">
+            <span class="tdot tdot-r"></span>
+            <span class="tdot tdot-y"></span>
+            <span class="tdot tdot-g"></span>
+          </div>
+        </div>
+        <div class="terminal-output" id="terminal-output"></div>
+        <div class="terminal-input-row">
+          <span class="terminal-prompt">C:\SYS_STATUS&gt;</span>
+          <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" />
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <footer>
     <div id="last-updated">AWAITING DATA...</div>
-    <div id="countdown" style="margin-top:6px;font-size:0.6rem;letter-spacing:0.2em;color:var(--dim)">NEXT REFRESH IN <span id="countdown-val" style="color:var(--cyan-500)">60</span>s</div>
+    <div id="countdown" style="margin-top:6px;font-size:0.6rem;letter-spacing:0.2em;color:var(--dim)">NEXT REFRESH IN <span id="countdown-val" style="color:var(--cyan-500)">600</span>s</div>
     <br>
     <button class="refresh-btn" onclick="loadAll()">⟳ &nbsp;REFRESH</button>
   </footer>
@@ -870,6 +1030,10 @@
 </div>
 
 <script>
+  // ── Global data cache (used by terminal status command) ──
+  let lastAzureXml      = null;
+  let lastSamanageJson  = null;
+
   // ── Helpers ─────────────────────────────────────────────
   const CORS_PROXIES = [
     url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -1244,6 +1408,7 @@
 
     // Samanage
     if (samResult.status === 'fulfilled') {
+      lastSamanageJson = samResult.value;
       const { bannerHTML, section } = renderSamanage(samResult.value);
       document.getElementById('samanage-banner-wrap').innerHTML = bannerHTML;
       document.getElementById('samanage-section').innerHTML = section;
@@ -1264,6 +1429,7 @@
 
     // Azure
     if (azureResult.status === 'fulfilled') {
+      lastAzureXml = azureResult.value;
       const { bannerHTML, section } = renderAzure(azureResult.value);
       document.getElementById('azure-banner-wrap').innerHTML = bannerHTML;
       document.getElementById('azure-section').innerHTML = section;
@@ -1302,7 +1468,7 @@
   }
 
   // ── Countdown timer ───────────────────────────────────────
-  const REFRESH_SEC = 60;
+  const REFRESH_SEC = 600;
   let countdown = REFRESH_SEC;
   let countdownInterval;
 
@@ -1325,6 +1491,300 @@
 
   loadAll();
   setInterval(() => loadAll(), REFRESH_SEC * 1000);
+
+  // ── Terminal ──────────────────────────────────────────────
+  (function initTerminal() {
+    const termOutput = document.getElementById('terminal-output');
+    const termInput  = document.getElementById('terminal-input');
+    const termPanel  = document.getElementById('terminal-panel');
+    if (!termOutput || !termInput) return;
+
+    const cmdHistory = [];
+    let histIdx = -1;
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function termPrint(text, cls) {
+      if (!text && text !== 0) {
+        const el = document.createElement('span');
+        el.className = 'terminal-line empty';
+        termOutput.appendChild(el);
+      } else {
+        const lines = String(text).split('\n');
+        for (const line of lines) {
+          const el = document.createElement('span');
+          el.className = 'terminal-line ' + (cls || 'out');
+          el.textContent = line;
+          termOutput.appendChild(el);
+        }
+      }
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+
+    function termPrintCmd(cmd) {
+      const el = document.createElement('span');
+      el.className = 'terminal-line cmd';
+      el.innerHTML = '<span class="terminal-prompt-prefix">C:\\SYS_STATUS&gt; </span>' + escHtml(cmd);
+      termOutput.appendChild(el);
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+
+    function doHelp() {
+      termPrint('');
+      termPrint('SYS_STATUS // OPERATIONAL GRID', 'header');
+      termPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+      termPrint('Live dashboard monitoring Microsoft Azure and Samanage', 'out');
+      termPrint('(SolarWinds Service Desk) service statuses, plus a real-', 'out');
+      termPrint('time CVE feed pulled from NVD (last 30 days).', 'out');
+      termPrint('');
+      termPrint('COMMANDS', 'header');
+      termPrint('  help                 Show this message', 'out');
+      termPrint('  status               Azure + Samanage summary', 'out');
+      termPrint('  status -v            Verbose: incidents + full', 'out');
+      termPrint('                       component breakdown', 'out');
+      termPrint('  cve <CVE-ID>         Look up a CVE by ID', 'out');
+      termPrint('                       e.g. cve CVE-2024-12345', 'out');
+      termPrint('  clear                Clear terminal output', 'out');
+      termPrint('');
+    }
+
+    function wrapPrint(text, prefix, cls) {
+      const words = String(text).split(' ');
+      let line = prefix;
+      for (const w of words) {
+        if (line.length + w.length > 62) { termPrint(line.trimEnd(), cls); line = prefix + w + ' '; }
+        else line += w + ' ';
+      }
+      if (line.trim()) termPrint(line.trimEnd(), cls);
+    }
+
+    function doStatus(verbose) {
+      termPrint('');
+      termPrint('// SYSTEM STATUS READOUT' + (verbose ? ' [-v]' : ''), 'header');
+      termPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+      // ── Azure ──
+      if (lastAzureXml) {
+        const items  = Array.from(lastAzureXml.getElementsByTagName('item'));
+        const active = items.filter(i => /^active/i.test(
+          (i.getElementsByTagName('title')[0]?.textContent || '').trim()
+        ));
+        if (active.length === 0) {
+          termPrint('  [AZURE]     All Systems Normal', 'ok');
+        } else {
+          termPrint('  [AZURE]     ' + active.length + ' Active Incident' + (active.length > 1 ? 's' : ''), 'warn');
+          active.forEach(item => {
+            const t = (item.getElementsByTagName('title')[0]?.textContent || '')
+              .replace(/^Active\s*[–-]\s*/i, '');
+            termPrint('    › ' + t, 'warn');
+            if (verbose) {
+              const pubDate = item.getElementsByTagName('pubDate')[0]?.textContent || '';
+              if (pubDate) termPrint('      Published : ' + new Date(pubDate).toLocaleString(), 'out');
+              const rawDesc = item.getElementsByTagName('description')[0]?.textContent || '';
+              const desc = stripHtml(rawDesc);
+              const snippet = desc.length > 220 ? desc.slice(0, 220).trimEnd() + '…' : desc;
+              wrapPrint(snippet, '      ', 'out');
+              termPrint('');
+            }
+          });
+        }
+        if (verbose) {
+          const other = items.filter(i => !/^active/i.test(
+            (i.getElementsByTagName('title')[0]?.textContent || '').trim()
+          ));
+          termPrint('    ' + other.length + ' non-active item' + (other.length !== 1 ? 's' : '') + ' in feed', 'out');
+        }
+      } else {
+        termPrint('  [AZURE]     Data not yet loaded', 'err');
+      }
+
+      termPrint('');
+
+      // ── Samanage ──
+      if (lastSamanageJson) {
+        const ind  = lastSamanageJson.status.indicator;
+        const desc = lastSamanageJson.status.description;
+        const isOk = ind === 'none';
+        termPrint('  [SAMANAGE]  ' + (isOk ? 'All Systems Operational' : desc), isOk ? 'ok' : 'warn');
+
+        if (verbose) {
+          const components = lastSamanageJson.components || [];
+          const groups     = components.filter(c => c.group === true);
+          const children   = components.filter(c => c.group === false && c.group_id);
+          const standalone = components.filter(c => c.group === false && !c.group_id);
+
+          const targetStandalone = ['Website & Blog'];
+          const targetGroups = [
+            'SolarWinds Service Desk [USA]',
+            'SolarWinds Service Desk [EMEA]',
+            'SolarWinds Service Desk [APAC]',
+            'Mobile Application'
+          ];
+
+          termPrint('');
+          for (const name of targetStandalone) {
+            const c = standalone.find(x => x.name === name);
+            if (!c) continue;
+            const ok = c.status === 'operational';
+            termPrint('    ● ' + c.name + '  ' + fmtStatus(c.status), ok ? 'ok' : 'warn');
+          }
+          for (const name of targetGroups) {
+            const g = groups.find(x => x.name === name);
+            if (!g) continue;
+            const gOk = g.status === 'operational';
+            termPrint('    ┌ ' + g.name + '  [' + fmtStatus(g.status) + ']', gOk ? 'ok' : 'warn');
+            const kids = children.filter(x => x.group_id === g.id);
+            kids.forEach((k, idx) => {
+              const isLast = idx === kids.length - 1;
+              const kOk = k.status === 'operational';
+              termPrint('    ' + (isLast ? '└' : '├') + ' ' + k.name + ': ' + fmtStatus(k.status), kOk ? 'ok' : 'warn');
+            });
+            termPrint('');
+          }
+        } else if (!isOk) {
+          const nonOp = (lastSamanageJson.components || [])
+            .filter(c => c.status !== 'operational' && !c.group);
+          nonOp.slice(0, 6).forEach(c => {
+            termPrint('    › ' + c.name + ': ' + c.status.replace(/_/g,' '), 'warn');
+          });
+        }
+      } else {
+        termPrint('  [SAMANAGE]  Data not yet loaded', 'err');
+      }
+
+      termPrint('');
+      termPrint('  ' + (document.getElementById('last-updated')?.textContent || 'N/A'), 'out');
+      termPrint('');
+    }
+
+    async function doCve(rawId) {
+      if (!rawId) {
+        termPrint('  Usage: cve <CVE-ID>   e.g. cve CVE-2024-12345', 'err');
+        return;
+      }
+      if (!/^CVE-\d{4}-\d+$/i.test(rawId)) {
+        termPrint('  Invalid format: ' + rawId, 'err');
+        termPrint('  Expected: CVE-YYYY-NNNNN', 'err');
+        return;
+      }
+      const id = rawId.toUpperCase();
+      termPrint('  Querying NVD for ' + id + '...', 'info');
+      try {
+        const url = 'https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=' + id;
+        const r = await fetch(url, { signal: AbortSignal.timeout(12000) });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        const vuln = data.vulnerabilities?.[0]?.cve;
+        if (!vuln) {
+          termPrint('  No record found for ' + id, 'err');
+          return;
+        }
+
+        const score   = getCvssScore(vuln);
+        const sevInfo = cveSeverityInfo(score);
+        const published = vuln.published
+          ? new Date(vuln.published).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
+          : 'Unknown';
+        const desc = vuln.descriptions?.find(d => d.lang === 'en')?.value || 'No description.';
+        const scoreColor = score === null ? 'out' : score >= 9 ? 'err' : score >= 7 ? 'warn' : score >= 4 ? 'warn' : 'ok';
+
+        termPrint('');
+        termPrint('  ' + vuln.id, 'info');
+        termPrint('  ─────────────────────────────────────', 'out');
+        termPrint('  CVSS Score : ' + sevInfo.label, scoreColor);
+        termPrint('  Published  : ' + published, 'out');
+        termPrint('');
+
+        // Word-wrap description at ~62 chars
+        const words = desc.split(' ');
+        let line = '  ';
+        for (const w of words) {
+          if (line.length + w.length > 62) {
+            termPrint(line, 'out');
+            line = '  ' + w + ' ';
+          } else {
+            line += w + ' ';
+          }
+        }
+        if (line.trim()) termPrint(line.trimEnd(), 'out');
+
+        termPrint('');
+        termPrint('  https://nvd.nist.gov/vuln/detail/' + vuln.id, 'info');
+        termPrint('');
+      } catch (e) {
+        termPrint('  Error: ' + e.message, 'err');
+      }
+    }
+
+    async function handleCommand(raw) {
+      const cmd   = raw.trim();
+      if (!cmd) return;
+      cmdHistory.unshift(cmd);
+      histIdx = -1;
+      termPrintCmd(cmd);
+
+      const parts = cmd.split(/\s+/);
+      const verb  = parts[0].toLowerCase();
+
+      if (verb === 'clear' || verb === 'cls') { termOutput.innerHTML = ''; return; }
+      if (verb === 'help')   { doHelp();                                           return; }
+      if (verb === 'status') { doStatus(parts[1] === '-v' || parts[1] === '--verbose'); return; }
+      if (verb === 'cve')    { await doCve(parts[1]);                              return; }
+
+      termPrint("  '" + cmd + "': unknown command. Type 'help' for available commands.", 'err');
+    }
+
+    termInput.addEventListener('keydown', async e => {
+      if (e.key === 'Enter') {
+        const val = termInput.value;
+        termInput.value = '';
+        await handleCommand(val);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx < cmdHistory.length - 1) {
+          histIdx++;
+          termInput.value = cmdHistory[histIdx];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx > 0) {
+          histIdx--;
+          termInput.value = cmdHistory[histIdx];
+        } else {
+          histIdx = -1;
+          termInput.value = '';
+        }
+      }
+    });
+
+    termPanel.addEventListener('click', () => termInput.focus());
+
+    // Boot sequence
+    const bootLines = [
+      { t: 'SYS_STATUS TERMINAL v1.0',                   c: 'info' },
+      { t: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',   c: 'out'  },
+      { t: 'Microsoft Azure & Samanage status monitor.',  c: 'out'  },
+      { t: 'Data refreshes every 10 minutes.',            c: 'out'  },
+      { t: '',                                             c: ''     },
+      { t: 'Available commands:',                         c: 'out'  },
+      { t: '  help       — About this dashboard',         c: 'out'  },
+      { t: '  status     — Azure + Samanage summary',     c: 'out'  },
+      { t: '  status -v  — Full verbose breakdown',       c: 'out'  },
+      { t: '  cve        — Lookup a CVE by ID',           c: 'out'  },
+      { t: '',                                             c: ''     },
+    ];
+
+    let bi = 0;
+    function bootNext() {
+      if (bi >= bootLines.length) { if (window.innerWidth > 900) termInput.focus(); return; }
+      const { t, c } = bootLines[bi++];
+      termPrint(t || undefined, c || undefined);
+      setTimeout(bootNext, 60);
+    }
+    bootNext();
+  })();
 </script>
 </body>
 </html>
