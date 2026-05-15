@@ -89,7 +89,7 @@
       padding: 36px 0 28px;
       border-bottom: 2px solid var(--red-500);
       box-shadow: 0 3px 20px rgba(232,97,90,0.2);
-      margin-bottom: 28px;
+      margin-bottom: 0;
     }
 
     .header-eyebrow {
@@ -126,16 +126,111 @@
       text-transform: uppercase;
     }
 
-    /* ── Banner ─────────────────────────────────────────── */
-    .banner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+    /* ── CVE Ticker (desktop only) ───────────────────────── */
+    .cve-ticker-bar {
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      border-bottom: 1px solid var(--red-800);
+      background: var(--bg-900);
+      height: 40px;
       margin-bottom: 28px;
     }
 
-    @media (max-width: 640px) { .banner { grid-template-columns: 1fr; } }
+    .cve-ticker-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: var(--red-500);
+      text-shadow: var(--glow-red);
+      background: var(--red-900);
+      border-right: 2px solid var(--red-500);
+      padding: 0 14px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
 
+    .cve-ticker-viewport {
+      flex: 1;
+      overflow: hidden;
+      height: 100%;
+      position: relative;
+    }
+
+    .cve-ticker-track {
+      display: inline-flex;
+      align-items: center;
+      height: 100%;
+      white-space: nowrap;
+      animation: ticker-scroll var(--ticker-duration, 70s) linear infinite;
+      will-change: transform;
+    }
+
+    .cve-ticker-track:hover { animation-play-state: paused; }
+
+    @keyframes ticker-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .cve-ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+      flex-shrink: 0;
+      border-right: 1px solid var(--red-900);
+    }
+
+    .cve-ticker-item:hover { background: rgba(232,97,90,0.06); }
+
+    .cve-ticker-id {
+      font-family: 'VT323', monospace;
+      font-size: 1.05rem;
+      color: var(--cyan-500);
+      text-shadow: var(--glow-cyan);
+      letter-spacing: 0.05em;
+    }
+
+    .cve-ticker-desc {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--red-400);
+      max-width: 360px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cve-ticker-sep {
+      color: var(--red-800);
+      font-size: 0.55rem;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+
+    .cve-ticker-loading {
+      padding: 0 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--red-700);
+      letter-spacing: 0.15em;
+    }
+
+    @media (max-width: 900px) {
+      .cve-ticker-bar { display: none; }
+    }
+
+    /* ── Banner card (toggle block) ─────────────────────── */
     .banner-card {
       background: var(--bg-600);
       border: 1px solid var(--red-800);
@@ -146,7 +241,6 @@
       position: relative;
       overflow: hidden;
       transition: border-color 0.3s, box-shadow 0.3s;
-      text-decoration: none;
       cursor: pointer;
       clip-path: var(--notch-path);
     }
@@ -184,8 +278,8 @@
       50%       { border-color: rgba(232,97,90,0.75); }
     }
 
-    a.banner-card:hover     { box-shadow: 0 0 20px rgba(232,97,90,0.15); }
-    a.banner-card.ok:hover  { box-shadow: 0 0 20px rgba(43,254,160,0.15); }
+    .banner-card:hover     { box-shadow: 0 0 20px rgba(232,97,90,0.15); }
+    .banner-card.ok:hover  { box-shadow: 0 0 20px rgba(43,254,160,0.15); }
 
     .banner-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
 
@@ -221,6 +315,21 @@
 
     .badge-ok   { background: rgba(43,254,160,0.1);  color: var(--green-500); border: 1px solid rgba(43,254,160,0.4); }
     .badge-warn { background: rgba(232,97,90,0.1);   color: var(--red-400);   border: 1px solid rgba(232,97,90,0.4); }
+
+    .toggle-caret {
+      font-size: 0.65rem;
+      color: var(--red-700);
+      flex-shrink: 0;
+      margin-left: 6px;
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+
+    .toggle-caret.open { transform: rotate(90deg); }
+
+    @media (max-width: 900px) {
+      .toggle-caret { display: none; }
+    }
 
     /* ── Section heading ────────────────────────────────── */
     .section-label {
@@ -518,7 +627,7 @@
       box-shadow: var(--glow-red);
     }
 
-    /* ── CVE Feed ────────────────────────────────────────── */
+    /* ── CVE Feed (mobile list) ─────────────────────────── */
     .cve-list { margin-bottom: 0; }
 
     .cve-item {
@@ -611,23 +720,60 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── Three-column layout ────────────────────────────── */
+    /* ── Desktop main layout ────────────────────────────── */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
       gap: 20px;
       align-items: start;
       margin-bottom: 36px;
     }
 
-    .col { min-width: 0; }
+    /* Desktop: left half only (status blocks) */
+    @media (min-width: 901px) {
+      .main-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      /* CVE column is hidden on desktop (ticker used instead) */
+      .col-cve { display: none; }
+      /* Right grid column left intentionally empty */
+    }
 
-    /* Mobile: single column — Azure top, Samanage middle, CVEs bottom */
+    /* Mobile: single column */
     @media (max-width: 900px) {
       .main-grid { grid-template-columns: 1fr; }
-      .col-azure    { order: 1; }
-      .col-samanage { order: 2; }
-      .col-cve      { order: 3; }
+      .col-left-status { order: 1; }
+      .col-cve         { order: 2; display: block; }
+    }
+
+    .col { min-width: 0; }
+
+    /* ── Left status column ──────────────────────────────── */
+    .col-left-status {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── Collapsible subsection ─────────────────────────── */
+    .status-subsection {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.45s ease, padding-top 0.3s ease;
+      padding-top: 0;
+    }
+
+    .status-subsection.open {
+      max-height: 4000px;
+      padding-top: 10px;
+    }
+
+    /* On mobile, always show subsections */
+    @media (max-width: 900px) {
+      .status-subsection {
+        max-height: none !important;
+        overflow: visible !important;
+        padding-top: 10px !important;
+      }
     }
 
     /* ── Glitch on title ────────────────────────────────── */
@@ -673,17 +819,45 @@
     <div class="header-sub">SAMANAGE &amp; MICROSOFT AZURE · STATUS MONITOR</div>
   </header>
 
-  <!-- Top banner -->
-  <div class="banner" id="banner">
-    <div class="loader"><div class="loader-ring"></div><br>SCANNING SAMANAGE...</div>
-    <div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>
+  <!-- CVE Ticker Tape (desktop only) -->
+  <div class="cve-ticker-bar" id="cve-ticker-bar">
+    <span class="cve-ticker-label">// CVE FEED</span>
+    <div class="cve-ticker-viewport">
+      <div class="cve-ticker-track" id="cve-ticker-track">
+        <span class="cve-ticker-loading">SCANNING NVD CVE FEED...</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Three-column main grid: Samanage | Azure | CVEs -->
+  <!-- Main grid: left half = Azure + Samanage / mobile = also CVE column -->
   <div class="main-grid">
-    <div class="col col-samanage" id="samanage-section"></div>
-    <div class="col col-azure"    id="azure-section"></div>
-    <div class="col col-cve"      id="cve-section"></div>
+
+    <!-- Left half: Azure (top) then Samanage (below), each collapsible on desktop -->
+    <div class="col col-left-status">
+
+      <!-- Azure block -->
+      <div class="status-block" id="azure-block">
+        <div id="azure-banner-wrap">
+          <div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>
+        </div>
+        <div class="status-subsection" id="azure-section"></div>
+      </div>
+
+      <!-- Samanage block -->
+      <div class="status-block" id="samanage-block">
+        <div id="samanage-banner-wrap">
+          <div class="loader"><div class="loader-ring"></div><br>SCANNING SAMANAGE...</div>
+        </div>
+        <div class="status-subsection" id="samanage-section"></div>
+      </div>
+
+    </div>
+
+    <!-- CVE column — mobile only (desktop uses ticker) -->
+    <div class="col col-cve" id="cve-section">
+      <div class="loader"><div class="loader-ring"></div><br>SCANNING NVD CVE FEED...</div>
+    </div>
+
   </div>
 
   <footer>
@@ -697,7 +871,6 @@
 
 <script>
   // ── Helpers ─────────────────────────────────────────────
-  // Multiple CORS proxies — tried in order until one succeeds
   const CORS_PROXIES = [
     url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
     url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -745,6 +918,16 @@
       .trim();
   }
 
+  // ── Toggle collapsible subsections ───────────────────────
+  function toggleSection(id) {
+    const subsection = document.getElementById(id + '-section');
+    const caret = document.querySelector('#' + id + '-banner-wrap .toggle-caret');
+    if (!subsection) return;
+    const isOpen = subsection.classList.contains('open');
+    subsection.classList.toggle('open', !isOpen);
+    if (caret) caret.classList.toggle('open', !isOpen);
+  }
+
   // ── Samanage ─────────────────────────────────────────────
   async function fetchSamanage() {
     const r = await fetch(SAMANAGE_URL);
@@ -756,16 +939,17 @@
     const desc      = data.status.description;
     const isOk      = indicator === 'none';
 
-    // Banner card
     const bannerHTML = `
-      <a class="banner-card ${isOk ? 'ok' : 'warn'}" href="https://status.samanage.com/" target="_blank" rel="noopener">
+      <div class="banner-card ${isOk ? 'ok' : 'warn'}" onclick="toggleSection('samanage')" role="button" tabindex="0"
+           onkeydown="if(event.key==='Enter'||event.key===' ')toggleSection('samanage')">
         <div class="banner-icon">${isOk ? '✦' : '⚠'}</div>
         <div class="banner-info">
           <div class="banner-source">Samanage · SolarWinds Service Desk</div>
           <div class="banner-msg">${isOk ? 'All Systems Operational' : desc}</div>
         </div>
         <span class="banner-badge ${isOk ? 'badge-ok' : 'badge-warn'}">${isOk ? 'OK' : 'ISSUE'}</span>
-      </a>`;
+        <span class="toggle-caret">&#9654;</span>
+      </div>`;
 
     const components = data.components;
     const groups   = components.filter(c => c.group === true);
@@ -832,9 +1016,7 @@
         const txt = await r.text();
         const parser = new DOMParser();
         const xml = parser.parseFromString(txt, 'text/xml');
-        // DOMParser sets the root to <parsererror> on failure
-        if (xml.querySelector('parsererror')) throw new Error('XML parse error');
-        // Confirm we actually got RSS items
+        if (xml.querySelector('parseerror')) throw new Error('XML parse error');
         if (xml.getElementsByTagName('item').length === 0 &&
             xml.getElementsByTagName('channel').length === 0) throw new Error('Empty feed');
         return xml;
@@ -847,7 +1029,6 @@
   }
 
   function renderAzure(xml) {
-    // Use getElementsByTagName — querySelectorAll fails on XML with namespaces
     const items = Array.from(xml.getElementsByTagName('item'));
     const active = items.filter(i => {
       const titleEl = i.getElementsByTagName('title')[0];
@@ -856,16 +1037,17 @@
     });
     const isNormal = active.length === 0;
 
-    // Banner card
     const bannerHTML = `
-      <a class="banner-card ${isNormal ? 'ok' : 'warn'}" href="https://azure.status.microsoft/en-us/status/" target="_blank" rel="noopener">
+      <div class="banner-card ${isNormal ? 'ok' : 'warn'}" onclick="toggleSection('azure')" role="button" tabindex="0"
+           onkeydown="if(event.key==='Enter'||event.key===' ')toggleSection('azure')">
         <div class="banner-icon">${isNormal ? '✦' : '⚠'}</div>
         <div class="banner-info">
           <div class="banner-source">Microsoft Azure</div>
           <div class="banner-msg">${isNormal ? 'All Systems Normal' : `${active.length} Active Incident${active.length > 1 ? 's' : ''}`}</div>
         </div>
         <span class="banner-badge ${isNormal ? 'badge-ok' : 'badge-warn'}">${isNormal ? 'OK' : 'ALERT'}</span>
-      </a>`;
+        <span class="toggle-caret">&#9654;</span>
+      </div>`;
 
     let incidentsHTML = '';
     if (isNormal) {
@@ -903,43 +1085,29 @@
   }
 
   // ── CVE Feed (NVD) ────────────────────────────────────────
-  // NVD API v2.0 returns CVEs sorted by CVE ID ascending (oldest first) with no
-  // date filter — so we must pass pubStartDate/pubEndDate to scope to recent CVEs,
-  // fetch a large batch, filter to relevant vendors, sort newest-first, take top 10.
   const CVE_KEYWORDS = [
-    // Microsoft & Windows ecosystem
     'microsoft', 'windows', 'azure', 'office', 'outlook', 'exchange',
     'sharepoint', 'teams', 'onedrive', 'defender', '.net framework',
     'visual studio', 'hyper-v', 'iis', 'sql server', 'active directory',
     'powershell', 'word', 'excel', 'powerpoint', 'onenote', 'access',
     'skype', 'edge',
-    // Google Chrome / Chromium
     'chrome', 'chromium',
-    // Adobe (very common attack surface)
     'adobe', 'acrobat', 'reader', 'photoshop', 'illustrator', 'coldfusion',
-    // Mozilla Firefox
     'firefox', 'mozilla',
-    // Zoom, Slack, Teams (already covered above)
     'zoom',
-    // VPN / remote access
     'fortinet', 'fortigate', 'forticlient', 'palo alto', 'globalprotect',
     'pulse secure', 'ivanti', 'cisco anyconnect', 'citrix',
-    // Virtualisation / infrastructure
     'vmware', 'vCenter', 'esxi',
-    // Common libraries / runtimes
     'openssl', 'openssh', 'curl', 'libcurl',
-    // Archive / utility tools
     '7-zip', 'winrar', 'putty',
-    // Java
     'oracle java', 'oracle jdk', 'openjdk',
   ];
 
   async function fetchCVE() {
     const now  = new Date();
     const past = new Date();
-    past.setDate(past.getDate() - 30); // rolling 30-day window
-    const fmt = d => d.toISOString().slice(0, 19) + '.000'; // YYYY-MM-DDTHH:MM:SS.000
-    // Fetch 200 candidates so the filter has enough to work with
+    past.setDate(past.getDate() - 30);
+    const fmt = d => d.toISOString().slice(0, 19) + '.000';
     const url  = `https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=200&pubStartDate=${fmt(past)}&pubEndDate=${fmt(now)}`;
     const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -949,7 +1117,6 @@
   function cveMatchesFilter(cve) {
     const desc = (cve.descriptions?.find(d => d.lang === 'en')?.value || '').toLowerCase();
     if (CVE_KEYWORDS.some(kw => desc.includes(kw.toLowerCase()))) return true;
-    // Also check CPE configuration strings for vendor/product names
     const configs = cve.configurations || [];
     for (const cfg of configs) {
       for (const node of (cfg.nodes || [])) {
@@ -971,7 +1138,6 @@
   }
 
   function getCvssScore(cve) {
-    // Prefer CVSSv3.1, then v3.0, then v2
     const m = cve.metrics;
     if (!m) return null;
     const v31 = m.cvssMetricV31?.[0]?.cvssData?.baseScore;
@@ -983,11 +1149,49 @@
     return null;
   }
 
-  function renderCVE(data) {
-    const vulns = (data.vulnerabilities || [])
+  function getFilteredCVEs(data) {
+    return (data.vulnerabilities || [])
       .sort((a, b) => new Date(b.cve.published) - new Date(a.cve.published))
       .filter(({ cve }) => cveMatchesFilter(cve))
       .slice(0, 10);
+  }
+
+  // Desktop ticker rendering
+  function renderCVETicker(vulns) {
+    if (!vulns.length) {
+      return '<span class="cve-ticker-loading">NO MATCHING CVEs IN LAST 30 DAYS</span>';
+    }
+
+    const items = vulns.map(({ cve }) => {
+      const score = getCvssScore(cve);
+      const { label, scoreClass } = cveSeverityInfo(score);
+      const desc = cve.descriptions?.find(d => d.lang === 'en')?.value || '';
+      const shortDesc = desc.length > 90 ? desc.slice(0, 90) + '…' : desc;
+      const nvdLink = `https://nvd.nist.gov/vuln/detail/${cve.id}`;
+
+      return `<a class="cve-ticker-item" href="${nvdLink}" target="_blank" rel="noopener">
+        <span class="cve-ticker-id">${cve.id}</span>
+        <span class="cve-score ${scoreClass}">${label}</span>
+        <span class="cve-ticker-desc">${shortDesc}</span>
+      </a><span class="cve-ticker-sep">◆</span>`;
+    }).join('');
+
+    // Duplicate for seamless loop
+    const track = document.getElementById('cve-ticker-track');
+    const html = items + items;
+
+    // Compute animation duration after rendering so we can measure width
+    // Use a generous fixed estimate: ~500px per item at 80px/s
+    const approxWidth = vulns.length * 520;
+    const duration = Math.round(approxWidth / 80);
+    track.style.setProperty('--ticker-duration', duration + 's');
+
+    return html;
+  }
+
+  // Mobile list rendering
+  function renderCVE(data) {
+    const vulns = getFilteredCVEs(data);
 
     const itemsHTML = vulns.map(({ cve }) => {
       const score = getCvssScore(cve);
@@ -1018,13 +1222,18 @@
 
   // ── Orchestrate ───────────────────────────────────────────
   async function loadAll() {
-    // Reset
-    document.getElementById('banner').innerHTML = `
-      <div class="loader"><div class="loader-ring"></div><br>SCANNING SAMANAGE...</div>
-      <div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>`;
-    document.getElementById('samanage-section').innerHTML = '';
+    // Reset loaders
+    document.getElementById('cve-ticker-track').innerHTML =
+      '<span class="cve-ticker-loading">SCANNING NVD CVE FEED...</span>';
+    document.getElementById('azure-banner-wrap').innerHTML =
+      '<div class="loader"><div class="loader-ring"></div><br>SCANNING AZURE...</div>';
+    document.getElementById('samanage-banner-wrap').innerHTML =
+      '<div class="loader"><div class="loader-ring"></div><br>SCANNING SAMANAGE...</div>';
     document.getElementById('azure-section').innerHTML = '';
-    document.getElementById('cve-section').innerHTML = `<div class="loader"><div class="loader-ring"></div><br>SCANNING NVD CVE FEED...</div>`;
+    document.getElementById('samanage-section').innerHTML = '';
+    const cveMobileEl = document.getElementById('cve-section');
+    if (cveMobileEl) cveMobileEl.innerHTML =
+      '<div class="loader"><div class="loader-ring"></div><br>SCANNING NVD CVE FEED...</div>';
     document.getElementById('last-updated').textContent = 'FETCHING DATA...';
 
     const [samResult, azureResult, cveResult] = await Promise.allSettled([
@@ -1033,53 +1242,61 @@
       fetchCVE()
     ]);
 
-    const bannerEl  = document.getElementById('banner');
-    const samEl     = document.getElementById('samanage-section');
-    const azureEl   = document.getElementById('azure-section');
-    const cveEl     = document.getElementById('cve-section');
-    const banners   = [];
-
+    // Samanage
     if (samResult.status === 'fulfilled') {
       const { bannerHTML, section } = renderSamanage(samResult.value);
-      banners.push(bannerHTML);
-      samEl.innerHTML = section;
+      document.getElementById('samanage-banner-wrap').innerHTML = bannerHTML;
+      document.getElementById('samanage-section').innerHTML = section;
     } else {
-      banners.push(`
-        <div class="banner-card warn">
+      document.getElementById('samanage-banner-wrap').innerHTML = `
+        <div class="banner-card warn" onclick="toggleSection('samanage')" role="button" tabindex="0">
           <div class="banner-icon">⚠</div>
           <div class="banner-info">
             <div class="banner-source">Samanage · SolarWinds Service Desk</div>
             <div class="banner-msg">Failed to load status</div>
           </div>
           <span class="banner-badge badge-warn">ERROR</span>
-        </div>`);
-      samEl.innerHTML = `<div class="loader" style="color:var(--red-500)">SAMANAGE DATA UNAVAILABLE</div>`;
+          <span class="toggle-caret">&#9654;</span>
+        </div>`;
+      document.getElementById('samanage-section').innerHTML =
+        `<div class="loader" style="color:var(--red-500)">SAMANAGE DATA UNAVAILABLE</div>`;
     }
 
+    // Azure
     if (azureResult.status === 'fulfilled') {
       const { bannerHTML, section } = renderAzure(azureResult.value);
-      banners.push(bannerHTML);
-      azureEl.innerHTML = section;
+      document.getElementById('azure-banner-wrap').innerHTML = bannerHTML;
+      document.getElementById('azure-section').innerHTML = section;
     } else {
-      banners.push(`
-        <div class="banner-card warn">
+      document.getElementById('azure-banner-wrap').innerHTML = `
+        <div class="banner-card warn" onclick="toggleSection('azure')" role="button" tabindex="0">
           <div class="banner-icon">⚠</div>
           <div class="banner-info">
             <div class="banner-source">Microsoft Azure</div>
             <div class="banner-msg">Failed to load feed</div>
           </div>
           <span class="banner-badge badge-warn">ERROR</span>
-        </div>`);
-      azureEl.innerHTML = `<div class="loader" style="color:var(--red-500)">AZURE FEED UNAVAILABLE</div>`;
+          <span class="toggle-caret">&#9654;</span>
+        </div>`;
+      document.getElementById('azure-section').innerHTML =
+        `<div class="loader" style="color:var(--red-500)">AZURE FEED UNAVAILABLE</div>`;
     }
 
+    // CVE
     if (cveResult.status === 'fulfilled') {
-      cveEl.innerHTML = renderCVE(cveResult.value);
+      const vulns = getFilteredCVEs(cveResult.value);
+      // Desktop ticker
+      const tickerEl = document.getElementById('cve-ticker-track');
+      tickerEl.innerHTML = renderCVETicker(vulns);
+      // Mobile list
+      if (cveMobileEl) cveMobileEl.innerHTML = renderCVE(cveResult.value);
     } else {
-      cveEl.innerHTML = `<div class="loader" style="color:var(--red-500)">CVE FEED UNAVAILABLE</div>`;
+      document.getElementById('cve-ticker-track').innerHTML =
+        '<span class="cve-ticker-loading">CVE FEED UNAVAILABLE</span>';
+      if (cveMobileEl) cveMobileEl.innerHTML =
+        `<div class="loader" style="color:var(--red-500)">CVE FEED UNAVAILABLE</div>`;
     }
 
-    bannerEl.innerHTML = banners.join('');
     document.getElementById('last-updated').textContent =
       'LAST SYNC: ' + new Date().toLocaleString().toUpperCase();
   }
@@ -1100,7 +1317,6 @@
     }, 1000);
   }
 
-  // Wrap loadAll to reset countdown on every call (including manual refresh)
   const _loadAll = loadAll;
   loadAll = async function () {
     await _loadAll();
